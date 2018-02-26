@@ -37,17 +37,48 @@ ORDER BY Reviewer.name, Movie.title, Rating.stars;
 ```
 6. For all cases where the same reviewer rated the same movie twice and gave it a higher rating the second time, return the reviewer's name and the title of the movie. 
 ```
-
+SELECT Reviewer.name, Movie.title
+FROM Reviewer
+JOIN Movie
+JOIN (
+        SELECT Higher.rID, Higher.mID
+        FROM Rating Higher, Rating Lower
+        WHERE Higher.rID = Lower.rID AND Higher.mID = Lower.mID
+            AND Higher.stars > Lower.stars AND Higher.ratingDate > Lower.ratingDate
+    ) as R
+Where Reviewer.rID = R.rID AND Movie.mID = R.mID;
 ```
 7. For each movie that has at least one rating, find the highest number of stars that movie received. Return the movie title and number of stars. Sort by movie title. 
 ```
-
+SELECT Movie.title, MAX(stars)
+FROM Rating 
+JOIN Movie on Rating.mID = Movie.mID
+GROUP BY Movie.mID
+ORDER BY Movie.title;
 ```
 8. For each movie, return the title and the 'rating spread', that is, the difference between highest and lowest ratings given to that movie. Sort by rating spread from highest to lowest, then by movie title. 
 ```
-
+SELECT Movie.title, MAX(Rating.stars) - MIN(Rating.stars)
+FROM Movie
+JOIN Rating ON Movie.mID = Rating.mID
+GROUP BY Movie.mID
+ORDER BY MAX(Rating.stars) - MIN(Rating.stars) DESC, Movie.title;
 ```
 9. Find the difference between the average rating of movies released before 1980 and the average rating of movies released after 1980. (Make sure to calculate the average rating for each movie, then the average of those averages for movies before 1980 and movies after. Don't just calculate the overall average rating before and after 1980.) 
 ```
-
+SELECT AVG(PRE.stars) - AVG(POST.stars)
+FROM (
+        SELECT AVG(Rating.stars) as stars
+        FROM Rating
+        JOIN Movie ON Rating.mID = Movie.mID
+        WHERE Movie.year < 1980
+        GROUP BY Rating.mID
+    ) as PRE
+JOIN (
+        SELECT AVG(Rating.stars) as stars
+        FROM Rating
+        JOIN Movie ON Rating.mID = Movie.mID
+        WHERE Movie.year > 1980
+        GROUP BY Rating.mID
+     ) as POST;
 ```
